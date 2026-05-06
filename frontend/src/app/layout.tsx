@@ -19,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen flex flex-col`}>
+      <body className={`${inter.className} bg-[#050505] text-white min-h-screen flex flex-col`} suppressHydrationWarning={true}>
         <VisitorTracker />
         {/* Animated Background Elements */}
         <div className="fixed inset-0 z-[-1] overflow-hidden bg-black">
@@ -32,10 +32,22 @@ export default function RootLayout({
           {children}
         </main>
         
-        <footer className="glass border-t border-white/5 py-8 mt-12">
-          <div className="max-w-7xl mx-auto px-4 text-center text-gray-400">
-            <p>© {new Date().getFullYear()} AHMED-MD Ecosystem. All rights reserved.</p>
-            <p className="text-sm mt-2">Built with ❤️ for a futuristic WhatsApp experience.</p>
+        <footer className="glass border-t border-purple-500/20 py-10 mt-20 relative z-10">
+          <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-gray-400 font-medium">
+              © {new Date().getFullYear()} AHMED-MD
+            </div>
+            <div className="flex items-center gap-2 text-gray-400">
+              <span>Designed and developed by</span>
+              <a 
+                href="https://ahmedpixels.com" 
+                target="_blank" 
+                rel="noreferrer"
+                className="font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-fuchsia-400 hover:from-purple-300 hover:to-fuchsia-300 transition-colors tracking-wide"
+              >
+                AHMED PIXELS
+              </a>
+            </div>
           </div>
         </footer>
       </body>

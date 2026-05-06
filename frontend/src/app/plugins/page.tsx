@@ -99,38 +99,52 @@ export default function PluginsPage() {
         </motion.div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredPlugins.map((plugin, idx) => (
           <motion.div 
             key={plugin.id}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            className="glass p-6 rounded-2xl flex flex-col h-full"
+            transition={{ delay: idx * 0.1, type: 'spring', stiffness: 100 }}
+            whileHover={{ y: -5, transition: { duration: 0.2 } }}
+            className="relative group h-full"
           >
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="text-xl font-bold text-white">{plugin.name}</h3>
-              <span className="text-xs font-mono bg-white/10 text-gray-300 px-2 py-1 rounded">by {plugin.author}</span>
-            </div>
-            <p className="text-gray-400 text-sm mb-6 flex-grow">{plugin.description}</p>
+            {/* Premium Glow Effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-fuchsia-600/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             
-            <div className="flex gap-3 mt-auto">
-              <button 
-                onClick={() => copyCommand(plugin.id, plugin.url)}
-                className="flex-1 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 py-2 rounded-lg transition-colors text-sm font-bold"
-              >
-                {copiedId === plugin.id ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                {copiedId === plugin.id ? 'Copied!' : 'Copy Command'}
-              </button>
-              <a 
-                href={`https://wa.me/?text=${encodeURIComponent(`.plugin ${plugin.url}`)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center justify-center bg-green-500/20 hover:bg-green-500/30 text-green-400 p-2 rounded-lg transition-colors"
-                title="Send to WhatsApp"
-              >
-                <MessageCircle className="w-5 h-5" />
-              </a>
+            <div className="relative glass p-8 rounded-3xl flex flex-col h-full border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] backdrop-blur-xl overflow-hidden bg-gradient-to-b from-white/[0.05] to-transparent">
+              
+              {/* Top Accent Line */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+              
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 group-hover:to-white transition-colors">{plugin.name}</h3>
+                <span className="text-[10px] font-black uppercase tracking-wider bg-purple-500/10 border border-purple-500/20 text-purple-300 px-3 py-1.5 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+                  By {plugin.author}
+                </span>
+              </div>
+              
+              <p className="text-gray-400 text-sm mb-8 flex-grow leading-relaxed">{plugin.description}</p>
+              
+              <div className="flex gap-3 mt-auto">
+                <button 
+                  onClick={() => copyCommand(plugin.id, plugin.url)}
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#111] hover:bg-white/10 border border-white/10 py-3 rounded-xl transition-all text-sm font-bold text-white group/btn relative overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
+                  {copiedId === plugin.id ? <Check className="w-4 h-4 text-green-400 relative z-10" /> : <Copy className="w-4 h-4 relative z-10" />}
+                  <span className="relative z-10">{copiedId === plugin.id ? 'Copied!' : 'Copy Command'}</span>
+                </button>
+                <a 
+                  href={`https://wa.me/?text=${encodeURIComponent(`.plugin ${plugin.url}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400 p-3 rounded-xl transition-all shadow-[0_0_15px_rgba(74,222,128,0.1)] hover:shadow-[0_0_20px_rgba(74,222,128,0.2)]"
+                  title="Send to WhatsApp"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                </a>
+              </div>
             </div>
           </motion.div>
         ))}

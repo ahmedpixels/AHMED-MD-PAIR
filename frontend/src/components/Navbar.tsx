@@ -18,49 +18,51 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="fixed w-full z-50 top-0 transition-all duration-300 glass border-b border-white/5">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          <Link href="/" className="flex-shrink-0">
-            <span className="text-2xl font-black tracking-tighter text-white">
-              AHMED<span className="text-purple-500 neon-text">-MD</span>
-            </span>
-          </Link>
-          
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  href={link.path}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    pathname === link.path
-                      ? 'text-purple-400 bg-purple-500/10'
-                      : 'text-gray-300 hover:text-white hover:bg-white/5'
-                  }`}
+    <div className="fixed w-full z-50 top-4 left-0 flex justify-center pointer-events-none px-4">
+      <nav className="pointer-events-auto w-[90%] max-w-5xl glass rounded-full border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+        <div className="mx-auto px-6">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="flex-shrink-0">
+              <span className="text-xl font-black tracking-tighter text-white">
+                AHMED<span className="text-purple-500 neon-text">-MD</span>
+              </span>
+            </Link>
+            
+            <div className="hidden md:block">
+              <div className="ml-10 flex items-baseline space-x-6">
+                {navLinks.map((link) => (
+                  link.highlight ? (
+                    <Link
+                      key={link.path}
+                      href={link.path}
+                      className="px-4 py-1.5 rounded-full text-sm font-bold bg-white/5 border border-purple-500/30 hover:bg-white/10 text-white transition-all shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+                    >
+                      {link.name}
+                    </Link>
+                  ) : (
+                    <Link
+                      key={link.path}
+                      href={link.path}
+                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                        pathname === link.path
+                          ? 'text-purple-400 bg-purple-500/10'
+                          : 'text-gray-300 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {link.name}
+                    </Link>
+                  )
+                ))}
+                <a
+                  href="https://wa.me/923216479192"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-1.5 rounded-full text-sm font-bold bg-purple-600 hover:bg-purple-500 text-white transition-colors"
                 >
-                  {link.name}
-                  {pathname === link.path && (
-                    <motion.div
-                      layoutId="navbar-indicator"
-                      className="h-0.5 bg-purple-500 mt-1"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  )}
-                </Link>
-              ))}
-              <a
-                href="https://wa.me/923216479192"
-                target="_blank"
-                rel="noreferrer"
-                className="px-4 py-2 rounded-full text-sm font-bold bg-purple-600 hover:bg-purple-500 text-white transition-colors shadow-[0_0_15px_rgba(168,85,247,0.5)]"
-              >
-                Contact Us
-              </a>
+                  Contact Us
+                </a>
+              </div>
             </div>
-          </div>
           
           <div className="md:hidden flex items-center">
             <button
@@ -107,5 +109,6 @@ export default function Navbar() {
         </motion.div>
       )}
     </nav>
+    </div>
   );
 }

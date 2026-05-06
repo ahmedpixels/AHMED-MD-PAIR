@@ -1,115 +1,208 @@
 "use client";
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Server, Cloud, Cpu, ArrowRight, ExternalLink } from 'lucide-react';
+import { Download, ExternalLink, ArrowRight, Server, Cloud, Cpu, Smartphone, MonitorSpeaker } from 'lucide-react';
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 const platforms = [
   {
-    name: 'Deploy to Render',
-    icon: <Cloud className="w-10 h-10" />,
-    color: 'from-blue-500/20 to-cyan-500/5',
-    borderColor: 'border-blue-500/30',
-    textColor: 'text-blue-400',
-    link: 'https://dashboard.render.com/blueprint/new',
+    id: 'koyeb',
+    name: 'Deploy to Koyeb',
+    icon: <MonitorSpeaker className="w-8 h-8" />,
+    iconBg: 'bg-blue-500/20 text-blue-400',
+    buttonText: 'Deploy Now',
+    buttonLink: 'https://koyeb.com',
+    hasDownload: false,
     steps: [
-      'Create an account on Render.com',
+      'Login to koyeb.com and create new App',
+      'Select GitHub and connect your forked repo',
+      'Set Build Command: npm install',
+      'Set Run Command: node index.js',
+      'Add env SESSION_ID from below, then Deploy!',
+    ],
+  },
+  {
+    id: 'render',
+    name: 'Deploy to Render',
+    icon: <Cloud className="w-8 h-8" />,
+    iconBg: 'bg-cyan-500/20 text-cyan-400',
+    buttonText: 'Deploy Now',
+    buttonLink: 'https://render.com',
+    hasDownload: false,
+    steps: [
+      'Go to render.com → New Web Service',
       'Click the deployment button above',
       'Connect your GitHub account',
-      'Fill in the SESSION_ID environment variable',
-      'Click Deploy and wait for the build to complete'
-    ]
+      'Fill in the SESSION_ID as environment variable',
+      'Click Deploy and wait for the build to complete',
+    ],
   },
   {
-    name: 'Deploy to Heroku',
-    icon: <Server className="w-10 h-10" />,
-    color: 'from-purple-500/20 to-fuchsia-500/5',
-    borderColor: 'border-purple-500/30',
-    textColor: 'text-purple-400',
-    link: 'https://heroku.com/deploy',
+    id: 'panel',
+    name: 'Deploy on Panel',
+    icon: <Server className="w-8 h-8" />,
+    iconBg: 'bg-purple-500/20 text-purple-400',
+    buttonText: 'Manual Setup',
+    buttonLink: null,
+    scriptType: 'pm2',
+    hasDownload: true,
     steps: [
-      'Login or Register on Heroku',
-      'Click the deployment button above',
-      'Give your app a unique name',
-      'Enter your SESSION_ID in the config vars',
-      'Click Deploy App'
-    ]
+      'Go to your Pterodactyl / HopePanel',
+      'Create a new Node.js server (v18+)',
+      'Open "File Manager" tab in the panel',
+      'Download index.js below & upload it',
+      'Click "Start" — bot deploys itself!',
+    ],
   },
   {
+    id: 'vps',
     name: 'Deploy on VPS',
-    icon: <Cpu className="w-10 h-10" />,
-    color: 'from-green-500/20 to-emerald-500/5',
-    borderColor: 'border-green-500/30',
-    textColor: 'text-green-400',
-    link: '#',
+    icon: <Cpu className="w-8 h-8" />,
+    iconBg: 'bg-green-500/20 text-green-400',
+    buttonText: 'Manual Setup',
+    buttonLink: null,
+    scriptType: 'pm2',
+    hasDownload: true,
     steps: [
       'Connect to your VPS via SSH',
       'Run: sudo apt update && sudo apt install nodejs git',
-      'Clone repo: git clone https://github.com/.../AHMED-MD',
+      'Download index.js below to your server',
+      'Create .env and add SESSION_ID',
+      'Run the bot: pm2 start index.js',
+    ],
+  },
+  {
+    id: 'termux',
+    name: 'Deploy on Termux',
+    icon: <Smartphone className="w-8 h-8" />,
+    iconBg: 'bg-orange-500/20 text-orange-400',
+    buttonText: 'Manual Setup',
+    buttonLink: null,
+    hasDownload: false,
+    steps: [
+      'Install Termux from F-Droid on Android',
+      'Run: pkg install nodejs git',
+      'Run: git clone https://github.com/ahmedpixels/AHMED-MD',
       'cd AHMED-MD && npm install',
-      'Create config.env and add SESSION_ID',
-      'Run the bot using PM2: pm2 start index.js'
-    ]
-  }
+      'Add SESSION_ID in .env and node index.js',
+    ],
+  },
 ];
 
 export default function Deploy() {
+  const [sessions, setSessions] = useState<Record<string, string>>({});
+
+  const setSession = (id: string, val: string) =>
+    setSessions(prev => ({ ...prev, [id]: val }));
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-16"
-      >
-        <h1 className="text-4xl md:text-5xl font-black mb-6 text-white">Quick Deployment</h1>
-        <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-          Choose your preferred cloud platform to deploy AHMED-MD instantly using your generated SESSION_ID.
+    <div className="max-w-7xl mx-auto px-4 py-14 z-10 relative">
+      {/* Header */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
+        <h1 className="text-5xl font-black text-white mb-3">Deploy your bot.</h1>
+        <p className="text-gray-400 text-lg max-w-2xl">
+          Choose a platform to host your instance. Follow the specific instructions for each
+          provider to ensure a successful deployment.
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {platforms.map((platform, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            className={`glass rounded-3xl p-8 border border-white/10 hover:${platform.borderColor} transition-all flex flex-col h-full relative overflow-hidden`}
-          >
-            <div className={`absolute top-0 left-0 w-full h-32 bg-gradient-to-b ${platform.color} opacity-50 z-0`}></div>
-            
-            <div className="relative z-10 flex flex-col h-full">
-              <div className={`mb-6 flex flex-col items-center gap-4 ${platform.textColor} text-center`}>
-                <div className="p-4 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-md">
-                  {platform.icon}
-                </div>
-                <h2 className="text-2xl font-bold text-white">{platform.name}</h2>
+      {/* Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {platforms.map((p, i) => {
+          const sessionId = sessions[p.id] || '';
+          const isValid = sessionId.startsWith('AHMED-MD_') && sessionId.length > 15;
+          const downloadUrl = p.hasDownload ? `${BACKEND_URL}/api/download/${p.scriptType}/${sessionId}` : '#';
+
+          return (
+            <motion.div
+              key={p.id}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08 }}
+              className="group flex flex-col rounded-2xl border border-white/8 bg-[#0e0e12] p-6 transition-all duration-300 hover:border-white/15"
+            >
+              {/* Icon */}
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${p.iconBg} border border-white/10`}>
+                {p.icon}
               </div>
-              
-              {platform.link !== '#' ? (
-                <a 
-                  href={platform.link} 
-                  target="_blank" 
+
+              {/* Name */}
+              <h2 className="text-xl font-black text-white mb-4">{p.name}</h2>
+
+              {/* Deploy Button */}
+              {p.buttonLink ? (
+                <a
+                  href={p.buttonLink}
+                  target="_blank"
                   rel="noreferrer"
-                  className="w-full py-3 mb-8 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold flex items-center justify-center gap-2 border border-white/10 transition-colors"
+                  className="w-full py-3 mb-6 bg-white/8 hover:bg-white/12 text-white rounded-xl font-bold flex items-center justify-center gap-2 border border-white/10 transition-all"
                 >
-                  Deploy Now <ExternalLink className="w-4 h-4" />
+                  {p.buttonText} <ExternalLink className="w-4 h-4" />
                 </a>
               ) : (
-                <div className="w-full py-3 mb-8 bg-white/5 text-gray-400 rounded-xl font-bold flex items-center justify-center gap-2 border border-white/10">
-                  Manual Setup
+                <div className="w-full py-3 mb-6 bg-white/4 text-gray-500 rounded-xl font-bold flex items-center justify-center border border-white/8">
+                  {p.buttonText}
                 </div>
               )}
-              
-              <ul className="space-y-4 flex-grow">
-                {platform.steps.map((step, i) => (
-                  <li key={i} className="flex items-start gap-3 text-gray-300 text-sm">
-                    <ArrowRight className={`w-4 h-4 mt-1 shrink-0 ${platform.textColor}`} />
-                    <span>{step}</span>
+
+              {/* Steps */}
+              <ul className="space-y-3 mb-6 flex-grow">
+                {p.steps.map((step, idx) => (
+                  <li key={idx} className="flex items-start gap-3">
+                    <ArrowRight className="w-4 h-4 mt-0.5 shrink-0 text-gray-500" />
+                    <span className="text-gray-400 text-sm">{step}</span>
                   </li>
                 ))}
               </ul>
-            </div>
-          </motion.div>
-        ))}
+
+              {p.hasDownload && (
+                <>
+                  {/* Divider */}
+                  <div className="border-t border-white/8 my-4" />
+
+                  {/* Session ID + Download */}
+                  <div className="space-y-3">
+                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Session ID</p>
+                    <input
+                      type="text"
+                      placeholder="AHMED-MD_xxxxxxxxxxxxxxxx"
+                      value={sessionId}
+                      onChange={e => setSession(p.id, e.target.value.trim())}
+                      className={`w-full bg-black/50 border rounded-xl px-3 py-3 text-white font-mono text-xs focus:outline-none transition-all placeholder-gray-700 ${
+                        sessionId.length === 0
+                          ? 'border-white/10 focus:border-purple-500/50'
+                          : isValid
+                          ? 'border-green-500/50'
+                          : 'border-red-500/30'
+                      }`}
+                    />
+
+                    {isValid ? (
+                      <a
+                        href={downloadUrl}
+                        download="index.js"
+                        className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white font-bold shadow-[0_0_20px_rgba(168,85,247,0.35)] transition-all flex items-center justify-center gap-2 text-sm"
+                      >
+                        <Download className="w-4 h-4" /> Download index.js
+                      </a>
+                    ) : (
+                      <div className="w-full py-3 rounded-xl bg-white/4 border border-white/8 text-gray-600 font-bold flex items-center justify-center gap-2 text-sm cursor-not-allowed">
+                        <Download className="w-4 h-4" /> Enter Session ID
+                      </div>
+                    )}
+
+                    {!sessionId && (
+                      <p className="text-center text-xs text-gray-700">
+                        No session? <a href="/generate" className="text-purple-400 hover:underline">Generate here →</a>
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );

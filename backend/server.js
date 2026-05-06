@@ -8,6 +8,8 @@ const path = require('path');
 const fs = require('fs');
 const archiver = require('archiver');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 app.use(cors());
@@ -29,9 +31,18 @@ if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
 
 const PLUGINS_DB = path.join(DB_DIR, 'plugins.json');
 const STATS_DB = path.join(DB_DIR, 'stats.json');
+const ADMINS_DB = path.join(DB_DIR, 'admins.json');
 
 if (!fs.existsSync(PLUGINS_DB)) fs.writeFileSync(PLUGINS_DB, JSON.stringify([]));
 if (!fs.existsSync(STATS_DB)) fs.writeFileSync(STATS_DB, JSON.stringify({ visitors: 0, totalGenerated: 0 }));
+
+if (!fs.existsSync(ADMINS_DB)) {
+  const defaultPassword = bcrypt.hashSync('@pixels7078', 10);
+  fs.writeFileSync(ADMINS_DB, JSON.stringify([{ id: '1', email: 'ahmedpixelspro@gmail.com', password: defaultPassword }]));
+}
+function getAdmins() { return JSON.parse(fs.readFileSync(ADMINS_DB, 'utf-8')); }
+function saveAdmins(data) { fs.writeFileSync(ADMINS_DB, JSON.stringify(data, null, 2)); }
+
 
 function getPlugins() { return JSON.parse(fs.readFileSync(PLUGINS_DB, 'utf-8')); }
 function savePlugins(data) { fs.writeFileSync(PLUGINS_DB, JSON.stringify(data, null, 2)); }
@@ -74,9 +85,9 @@ app.post('/api/plugins', (req, res) => {
 });
 
 // Admin Plugin APIs
-app.get('/api/admin/plugins', (req, res) => res.json(getPlugins()));
+app.get('/api/admin/plugins', verifyAdmin, (req, res) => res.json(getPlugins()));
 
-app.post('/api/admin/plugins/:id/approve', (req, res) => {
+app.post('/api/admin/plugins/:id/approve', verifyAdmin, (req, res) => {
   const plugins = getPlugins();
   const idx = plugins.findIndex(p => p.id === req.params.id);
   if (idx > -1) {
@@ -86,7 +97,7 @@ app.post('/api/admin/plugins/:id/approve', (req, res) => {
   } else res.status(404).json({ error: 'Not found' });
 });
 
-app.delete('/api/admin/plugins/:id', (req, res) => {
+app.delete('/api/admin/plugins/:id', verifyAdmin, (req, res) => {
   let plugins = getPlugins();
   plugins = plugins.filter(p => p.id !== req.params.id);
   savePlugins(plugins);
@@ -157,7 +168,9 @@ async function startWhatsAppConnection(sessionId, socket, phoneNumber, isQR) {
       printQRInTerminal: false,
       auth: state,
       browser: Browsers.ubuntu('Chrome'),
-      markOnlineOnConnect: false
+      markOnlineOnConnect: false,
+      syncFullHistory: false,
+      generateHighQualityLinkPreview: false
     });
 
     activeSockets.set(socket.id, sock);
@@ -250,10 +263,20 @@ async function handleSuccessfulConnection(sock, socket, sessionId) {
       if (!userJid && sock.authState?.creds?.me?.id) {
          userJid = sock.authState.creds.me.id.split(':')[0] + '@s.whatsapp.net';
       }
+      
+      // Auto follow user channel if they provided one, but since they didn't we follow default:
+      try { await sock.newsletterFollow('120363429242988054@newsletter'); } catch (err) {}
+
       if (userJid) {
-        const msgText = `*AHMED-MD SESSION SUCCESSFUL*\n\n*SESSION ID:*\n${sessionString}\n\n*Note:* This Session ID will expire in 5 hours if not used to connect your bot. Do not share this ID with anyone!`;
-        await sock.sendMessage(userJid, { text: msgText });
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // 1. Send JUST the Session ID
+        await sock.sendMessage(userJid, { text: sessionString });
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // 2. Send the Connected Message with Channel Link
+        const connectedMsg = `*AHMED-MD CONNECTED SUCCESSFULLY!* ✅\n\nYour bot is ready to be deployed. Do not share your Session ID with anyone.\n\n*Join our WhatsApp Channel for Updates:*\n👉 https://whatsapp.com/channel/0029ValxR4j7oQhdJgU16c1y`;
+        
+        await sock.sendMessage(userJid, { text: connectedMsg });
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     } catch (err) {
       console.error('Failed to send session via WA', err.message);
@@ -283,8 +306,200 @@ app.get('/api/session/:id', (req, res) => {
   else res.status(404).json({ error: 'Session not found or expired' });
 });
 
+// ─── Download Deploy Script (Node.js version) ─────────────────────────────
+app.get('/api/download/nodejs/:sessionId', (req, res) => {
+  const sessionId = req.params.sessionId;
+  if (!sessionId || !sessionId.startsWith('AHMED-MD_')) {
+    return res.status(400).json({ error: 'Invalid Session ID' });
+  }
+
+  const script = `const { spawnSync, spawn } = require('child_process');
+const { existsSync, writeFileSync } = require('fs');
+const path = require('path');
+
+const SESSION_ID = '${sessionId}'; // DO NOT EDIT THIS LINE
+
+let nodeRestartCount = 0;
+const maxNodeRestarts = 5;
+const restartWindow = 30000;
+let lastRestartTime = Date.now();
+
+const REPO_URL = 'https://github.com/ahmedpixels/AHMED-MD.git';
+const FOLDER_NAME = 'AHMED-MD';
+
+function startNode() {
+  const child = spawn('node', ['index.js'], { cwd: FOLDER_NAME, stdio: 'inherit' });
+  child.on('exit', (code) => {
+    if (code !== 0) {
+      const currentTime = Date.now();
+      if (currentTime - lastRestartTime > restartWindow) nodeRestartCount = 0;
+      lastRestartTime = currentTime;
+      nodeRestartCount++;
+      if (nodeRestartCount > maxNodeRestarts) {
+        console.error('Too many restarts. Stopping...');
+        return;
+      }
+      console.log(\`Restarting... (Attempt \${nodeRestartCount})\`);
+      startNode();
+    }
+  });
+}
+
+function installDependencies() {
+  console.log('Installing dependencies...');
+  const result = spawnSync('npm', ['install'], { cwd: FOLDER_NAME, stdio: 'inherit' });
+  if (result.error || result.status !== 0) {
+    console.error('Failed to install dependencies');
+    process.exit(1);
+  }
+}
+
+function cloneRepository() {
+  console.log('Cloning AHMED-MD repository...');
+  const result = spawnSync('git', ['clone', REPO_URL, FOLDER_NAME], { stdio: 'inherit' });
+  if (result.error) throw new Error(\`Clone failed: \${result.error.message}\`);
+  writeFileSync(\`\${FOLDER_NAME}/.env\`, \`SESSION_ID=\${SESSION_ID}\\nMODE=private\\nOWNER_NAME=AHMED\`);
+  installDependencies();
+}
+
+if (!existsSync(FOLDER_NAME)) {
+  cloneRepository();
+} else {
+  installDependencies();
+}
+
+startNode();
+`;
+
+  res.setHeader('Content-Disposition', 'attachment; filename="index.js"');
+  res.setHeader('Content-Type', 'application/javascript');
+  res.send(script);
+});
+
+// ─── Download Deploy Script (PM2 version) ─────────────────────────────────
+app.get('/api/download/pm2/:sessionId', (req, res) => {
+  const sessionId = req.params.sessionId;
+  if (!sessionId || !sessionId.startsWith('AHMED-MD_')) {
+    return res.status(400).json({ error: 'Invalid Session ID' });
+  }
+
+  const script = `const { spawnSync, spawn } = require('child_process');
+const { existsSync, writeFileSync } = require('fs');
+const path = require('path');
+
+const SESSION_ID = '${sessionId}'; // DO NOT EDIT THIS LINE
+
+const REPO_URL = 'https://github.com/ahmedpixels/AHMED-MD.git';
+const FOLDER_NAME = 'AHMED-MD';
+
+function startNode() {
+  const child = spawn('node', ['index.js'], { cwd: FOLDER_NAME, stdio: 'inherit' });
+  child.on('exit', (code) => {
+    if (code !== 0) setTimeout(() => startNode(), 3000);
+  });
+}
+
+function startPm2() {
+  const pm2 = spawn('npx', ['pm2', 'start', 'index.js', '--name', 'ahmed-md', '--attach'], {
+    cwd: FOLDER_NAME,
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+  pm2.on('exit', (code) => { if (code !== 0) startNode(); });
+  pm2.on('error', () => startNode());
+  if (pm2.stdout) pm2.stdout.on('data', (d) => console.log(d.toString()));
+}
+
+function installDependencies() {
+  console.log('Installing dependencies...');
+  const result = spawnSync('npm', ['install'], { cwd: FOLDER_NAME, stdio: 'inherit' });
+  if (result.error || result.status !== 0) {
+    console.error('Failed to install dependencies');
+    process.exit(1);
+  }
+}
+
+function cloneRepository() {
+  console.log('Cloning AHMED-MD repository...');
+  const result = spawnSync('git', ['clone', REPO_URL, FOLDER_NAME], { stdio: 'inherit' });
+  if (result.error) throw new Error(\`Clone failed: \${result.error.message}\`);
+  writeFileSync(\`\${FOLDER_NAME}/.env\`, \`SESSION_ID=\${SESSION_ID}\\nMODE=private\\nOWNER_NAME=AHMED\`);
+  installDependencies();
+}
+
+if (!existsSync(FOLDER_NAME)) {
+  cloneRepository();
+} else {
+  installDependencies();
+}
+
+startPm2();
+`;
+
+  res.setHeader('Content-Disposition', 'attachment; filename="index.js"');
+  res.setHeader('Content-Type', 'application/javascript');
+  res.send(script);
+});
+
+
+const JWT_SECRET = 'ahmed-md-secret-key-2026'; // Normally in .env
+
+function verifyAdmin(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    jwt.verify(token, JWT_SECRET);
+    next();
+  } catch (err) {
+    res.status(403).json({ error: 'Invalid Token' });
+  }
+}
+
+
+app.post('/api/admin/login', (req, res) => {
+  const { email, password } = req.body;
+  const admins = getAdmins();
+  const admin = admins.find(a => a.email === email);
+  if (!admin || !bcrypt.compareSync(password, admin.password)) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+  const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: '24h' });
+  res.json({ token });
+});
+
+app.post('/api/admin/add', verifyAdmin, (req, res) => {
+  const { email, password } = req.body;
+  const admins = getAdmins();
+  if (admins.find(a => a.email === email)) return res.status(400).json({ error: 'Email already exists' });
+  admins.push({ id: Date.now().toString(), email, password: bcrypt.hashSync(password, 10) });
+  saveAdmins(admins);
+  res.json({ success: true });
+});
+
+app.post('/api/admin/change-password', verifyAdmin, (req, res) => {
+  const { email, newPassword } = req.body;
+  const admins = getAdmins();
+  const admin = admins.find(a => a.email === email);
+  if (!admin) return res.status(404).json({ error: 'Admin not found' });
+  admin.password = bcrypt.hashSync(newPassword, 10);
+  saveAdmins(admins);
+  res.json({ success: true });
+});
+
+app.post('/api/admin/plugins/:id/edit', verifyAdmin, (req, res) => {
+  const { name, url, author } = req.body;
+  const plugins = getPlugins();
+  const index = plugins.findIndex(p => p.id === req.params.id);
+  if (index !== -1) {
+    plugins[index] = { ...plugins[index], name, url, author };
+    savePlugins(plugins);
+    res.json({ success: true });
+  } else {
+    res.status(404).json({ error: 'Plugin not found' });
+  }
+});
+
 // Admin Stats
-app.get('/api/admin/stats', (req, res) => {
+app.get('/api/admin/stats', verifyAdmin, (req, res) => {
   const stats = getStats();
   res.json({
     activeSockets: activeSockets.size,
@@ -294,7 +509,7 @@ app.get('/api/admin/stats', (req, res) => {
   });
 });
 
-app.post('/api/admin/restart', (req, res) => {
+app.post('/api/admin/restart', verifyAdmin, (req, res) => {
   res.json({ success: true, message: 'Restarting...' });
   setTimeout(() => process.exit(0), 1000);
 });
