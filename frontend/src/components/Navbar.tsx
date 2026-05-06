@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
-const navLinks = [
+const navLinks: { name: string; path: string; highlight?: boolean }[] = [
   { name: 'Home', path: '/' },
   { name: 'Generate', path: '/generate' },
   { name: 'Deploy', path: '/deploy' },
