@@ -35,7 +35,7 @@ export default function Home() {
     { id: 2, text: "Hello! I'm AHMED Support Bot 🤖. I can guide you. Please send your Session ID to get started.", sender: 'bot', time: '10:42 AM' }
   ]);
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!inputText.trim()) return;
 
