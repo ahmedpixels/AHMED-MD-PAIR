@@ -15,6 +15,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Version check
+app.get('/api/version', (req, res) => res.json({ version: '2.0.0', auth: true }));
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
