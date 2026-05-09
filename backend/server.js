@@ -503,62 +503,6 @@ startPm2();
 });
 
 
-const JWT_SECRET = 'ahmed-md-secret-key-2026'; // Normally in .env
-
-function verifyAdmin(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Unauthorized' });
-  try {
-    jwt.verify(token, JWT_SECRET);
-    next();
-  } catch (err) {
-    res.status(403).json({ error: 'Invalid Token' });
-  }
-}
-
-
-app.post('/api/admin/login', (req, res) => {
-  const { email, password } = req.body;
-  const admins = getAdmins();
-  const admin = admins.find(a => a.email === email);
-  if (!admin || !bcrypt.compareSync(password, admin.password)) {
-    return res.status(401).json({ error: 'Invalid credentials' });
-  }
-  const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: '24h' });
-  res.json({ token });
-});
-
-app.post('/api/admin/add', verifyAdmin, (req, res) => {
-  const { email, password } = req.body;
-  const admins = getAdmins();
-  if (admins.find(a => a.email === email)) return res.status(400).json({ error: 'Email already exists' });
-  admins.push({ id: Date.now().toString(), email, password: bcrypt.hashSync(password, 10) });
-  saveAdmins(admins);
-  res.json({ success: true });
-});
-
-app.post('/api/admin/change-password', verifyAdmin, (req, res) => {
-  const { email, newPassword } = req.body;
-  const admins = getAdmins();
-  const admin = admins.find(a => a.email === email);
-  if (!admin) return res.status(404).json({ error: 'Admin not found' });
-  admin.password = bcrypt.hashSync(newPassword, 10);
-  saveAdmins(admins);
-  res.json({ success: true });
-});
-
-app.post('/api/admin/plugins/:id/edit', verifyAdmin, (req, res) => {
-  const { name, url, author } = req.body;
-  const plugins = getPlugins();
-  const index = plugins.findIndex(p => p.id === req.params.id);
-  if (index !== -1) {
-    plugins[index] = { ...plugins[index], name, url, author };
-    savePlugins(plugins);
-    res.json({ success: true });
-  } else {
-    res.status(404).json({ error: 'Plugin not found' });
-  }
-});
 
 // Admin Stats
 app.get('/api/admin/stats', verifyAdmin, (req, res) => {
