@@ -31,27 +31,17 @@ export default function Navbar() {
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-6">
                 {navLinks.map((link) => (
-                  link.highlight ? (
-                    <Link
-                      key={link.path}
-                      href={link.path}
-                      className="px-4 py-1.5 rounded-full text-sm font-bold bg-white/5 border border-purple-500/30 hover:bg-white/10 text-white transition-all shadow-[0_0_10px_rgba(168,85,247,0.2)]"
-                    >
-                      {link.name}
-                    </Link>
-                  ) : (
-                    <Link
-                      key={link.path}
-                      href={link.path}
-                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                        pathname === link.path
-                          ? 'text-purple-400 bg-purple-500/10'
-                          : 'text-gray-300 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      {link.name}
-                    </Link>
-                  )
+                  <Link
+                    key={link.path}
+                    href={link.path}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      pathname === link.path
+                        ? 'text-purple-400 bg-purple-500/10'
+                        : 'text-gray-300 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
                 ))}
                 <a
                   href="https://wa.me/923216479192"

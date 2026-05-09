@@ -173,7 +173,7 @@ export default function Generate() {
           </div>
         )}
 
-        {(status === 'generating' || status === 'error') && (
+        {(status === 'generating' || status === 'error' || status === 'banned') && (
           <div className="space-y-8 flex flex-col items-center justify-center min-h-[250px]">
             
             {isConnecting ? (
