@@ -10,7 +10,7 @@ const navLinks = [
   { name: 'Plugins', path: '/plugins' },
   { name: 'Deploy', path: '/deploy' },
   { name: 'About', path: '/about' },
-  { name: 'Session', path: '/session', highlight: true }
+  { name: 'Session', path: '/session' }
 ];
 
 export default function Navbar() {

@@ -36,10 +36,12 @@ const PLUGINS_DB = path.join(DB_DIR, 'plugins.json');
 const STATS_DB = path.join(DB_DIR, 'stats.json');
 const ADMINS_DB = path.join(DB_DIR, 'admins.json');
 const BANS_DB = path.join(DB_DIR, 'bans.json');
+const USERS_DB = path.join(DB_DIR, 'users.json');
 
 if (!fs.existsSync(PLUGINS_DB)) fs.writeFileSync(PLUGINS_DB, JSON.stringify([]));
 if (!fs.existsSync(STATS_DB)) fs.writeFileSync(STATS_DB, JSON.stringify({ visitors: 0, totalGenerated: 0 }));
 if (!fs.existsSync(BANS_DB)) fs.writeFileSync(BANS_DB, JSON.stringify([]));
+if (!fs.existsSync(USERS_DB)) fs.writeFileSync(USERS_DB, JSON.stringify([]));
 
 if (!fs.existsSync(ADMINS_DB)) {
   const defaultPassword = bcrypt.hashSync('@pixels7078', 10);
@@ -50,6 +52,9 @@ function saveAdmins(data) { fs.writeFileSync(ADMINS_DB, JSON.stringify(data, nul
 
 function getBans() { return JSON.parse(fs.readFileSync(BANS_DB, 'utf-8')); }
 function saveBans(data) { fs.writeFileSync(BANS_DB, JSON.stringify(data, null, 2)); }
+
+function getUsers() { return JSON.parse(fs.readFileSync(USERS_DB, 'utf-8')); }
+function saveUsers(data) { fs.writeFileSync(USERS_DB, JSON.stringify(data, null, 2)); }
 
 
 function getPlugins() { return JSON.parse(fs.readFileSync(PLUGINS_DB, 'utf-8')); }
@@ -145,6 +150,10 @@ app.delete('/api/admin/delete/:id', verifyAdmin, (req, res) => {
   admins = admins.filter(a => a.id !== req.params.id);
   saveAdmins(admins);
   res.json({ success: true });
+});
+
+app.get('/api/admin/users', verifyAdmin, (req, res) => {
+  res.json(getUsers());
 });
 
 // Banned Users Routes
@@ -348,7 +357,7 @@ io.on('connection', (socket) => {
       const bans = getBans();
       const cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
       if (bans.find(b => b.number === cleanNumber)) {
-        socket.emit('error', 'Your number is banned from using this service.');
+        socket.emit('banned', 'Your number is banned from using this service.');
         socket.isSessionClosed = true;
         return;
       }
@@ -395,7 +404,7 @@ async function handleSuccessfulConnection(sock, socket, sessionId) {
          const bans = getBans();
          if (bans.find(b => b.number === cleanNumber)) {
             try { await sock.sendMessage(userJid, { text: '❌ *ACCESS DENIED*\n\nYour number is banned from using AHMED-MD.' }); } catch(e) {}
-            socket.emit('error', 'Your number is banned from using this service.');
+            socket.emit('banned', 'Your number is banned from using this service.');
             
             socket.isSessionClosed = true;
             try { await sock.logout(); } catch(e) {}
@@ -403,6 +412,13 @@ async function handleSuccessfulConnection(sock, socket, sessionId) {
             activeSockets.delete(socket.id);
             deleteSessionFolder(sessionId);
             return;
+         }
+         
+         // Record user
+         const users = getUsers();
+         if (!users.find(u => u.number === cleanNumber)) {
+           users.push({ id: Date.now().toString(), number: cleanNumber, date: new Date().toISOString() });
+           saveUsers(users);
          }
       }
       

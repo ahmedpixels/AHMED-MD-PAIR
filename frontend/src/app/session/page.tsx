@@ -13,7 +13,7 @@ export default function Generate() {
   const [qrCode, setQrCode] = useState('');
   const [pairingCode, setPairingCode] = useState('');
   const [sessionString, setSessionString] = useState('');
-  const [status, setStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'generating' | 'success' | 'error' | 'banned'>('idle');
   const [isConnecting, setIsConnecting] = useState(false);
   const [copied, setCopied] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -78,6 +78,13 @@ export default function Generate() {
     socket.on('error', (err) => {
       setErrorMsg(err);
       setStatus('error');
+      setIsConnecting(false);
+      socket.disconnect();
+    });
+
+    socket.on('banned', (err) => {
+      setErrorMsg(err);
+      setStatus('banned');
       setIsConnecting(false);
       socket.disconnect();
     });
@@ -245,6 +252,19 @@ export default function Generate() {
                 >
                   Try Again
                 </button>
+              </motion.div>
+            )}
+
+            {status === 'banned' && (
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-6 w-full max-w-md mx-auto">
+                <div className="p-6 bg-red-900/40 border border-red-500/50 rounded-2xl shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+                  <div className="w-16 h-16 mx-auto bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                    <span className="text-4xl">⛔</span>
+                  </div>
+                  <h3 className="text-2xl font-black text-white mb-2 tracking-wide uppercase text-red-500">Access Denied</h3>
+                  <p className="text-gray-300 font-medium">Your phone number has been banned from using AHMED-MD.</p>
+                  <p className="text-sm text-gray-500 mt-4">If you believe this is a mistake, please contact support.</p>
+                </div>
               </motion.div>
             )}
           </div>
