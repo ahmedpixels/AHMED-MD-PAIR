@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Zap, Smartphone, Server, ArrowRight, Bot, Code, Cpu } from 'lucide-react';
+import { Shield, Zap, Smartphone, Server, ArrowRight, Bot, Code, Cpu, Terminal } from 'lucide-react';
 
 const features = [
   {
