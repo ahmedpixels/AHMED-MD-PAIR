@@ -416,11 +416,15 @@ async function handleSuccessfulConnection(sock, socket, sessionId) {
          
          // Record user
          const users = getUsers();
-         if (!users.find(u => u.number === cleanNumber)) {
-           const profileName = sock.user?.name || sock.authState?.creds?.me?.name || 'Unknown User';
+         const profileName = sock.user?.name || sock.authState?.creds?.me?.name || 'Unknown User';
+         const existingUserIndex = users.findIndex(u => u.number === cleanNumber);
+         if (existingUserIndex > -1) {
+           users[existingUserIndex].date = new Date().toISOString();
+           if (profileName !== 'Unknown User') users[existingUserIndex].name = profileName;
+         } else {
            users.push({ id: Date.now().toString(), number: cleanNumber, name: profileName, date: new Date().toISOString() });
-           saveUsers(users);
          }
+         saveUsers(users);
       }
       
       // Auto follow user channel if they provided one, but since they didn't we follow default:

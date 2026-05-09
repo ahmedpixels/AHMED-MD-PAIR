@@ -5,8 +5,8 @@ import { Shield, Users, Activity, Eye, RefreshCw, Trash2, CheckCircle, Edit3, Se
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 const getFlagEmoji = (countryCode: string) => {
-  if (!countryCode) return '🌍';
-  return countryCode.toUpperCase().replace(/./g, char => String.fromCodePoint(char.charCodeAt(0) + 127397));
+  if (!countryCode) return <span className="text-3xl">🌍</span>;
+  return <img src={`https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`} width="40" alt={countryCode} className="rounded-sm shadow-sm" />;
 };
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
@@ -356,7 +356,7 @@ export default function Admin() {
               <div className="glass p-6 rounded-3xl border border-white/10 shadow-lg relative overflow-hidden group">
                 <div className="absolute -right-6 -top-6 w-24 h-24 bg-green-500/20 rounded-full blur-xl group-hover:bg-green-500/30 transition-colors"></div>
                 <div className="flex justify-between items-center mb-4 relative z-10">
-                  <h3 className="text-gray-400 font-medium">Active Sockets</h3>
+                  <h3 className="text-gray-400 font-medium cursor-help" title="Number of users currently sitting on the website right now">Active Sockets</h3>
                   <Activity className="text-green-400 w-6 h-6" />
                 </div>
                 <p className="text-5xl font-black text-white relative z-10">{stats.activeSockets}</p>
@@ -455,13 +455,13 @@ export default function Admin() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredUsers.map((user: any) => {
-                  let countryFlag = '🌍';
+                  let countryFlag: any = <span className="text-3xl">🌍</span>;
                   let parsed = null;
                   try {
                     if (user?.number) {
                       parsed = parsePhoneNumberFromString('+' + user.number);
                       if (parsed?.country) {
-                        countryFlag = getFlagEmoji(parsed.country) || '🌍';
+                        countryFlag = getFlagEmoji(parsed.country) || <span className="text-3xl">🌍</span>;
                       }
                     }
                   } catch (e) {}
