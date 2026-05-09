@@ -199,7 +199,7 @@ export default function Generate() {
                 )}
 
                 {method === 'qr' && qrCode && (
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 w-full max-w-2xl mx-auto">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex flex-col md:flex-row-reverse items-center justify-center gap-6 md:gap-12 w-full max-w-2xl mx-auto">
                     <div className="bg-white p-4 rounded-xl flex-shrink-0">
                       <QRCodeSVG value={qrCode} size={256} />
                     </div>
