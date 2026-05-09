@@ -70,7 +70,7 @@ export default function Navbar() {
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="md:hidden bg-[#0a0f1c] border border-blue-500/30 shadow-2xl absolute top-20 left-0 w-full rounded-2xl overflow-hidden"
+          className="md:hidden bg-purple-950/90 backdrop-blur-xl border border-purple-500/30 shadow-2xl absolute top-20 left-0 w-full rounded-2xl overflow-hidden"
         >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navLinks.map((link) => (

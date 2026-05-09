@@ -3,7 +3,11 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Users, Activity, Eye, RefreshCw, Trash2, CheckCircle, Edit3, Settings, LogOut, Plus, Key, XCircle, Search } from 'lucide-react';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
-import { flag } from 'country-flag-emoji';
+
+const getFlagEmoji = (countryCode: string) => {
+  if (!countryCode) return '🌍';
+  return countryCode.toUpperCase().replace(/./g, char => String.fromCodePoint(char.charCodeAt(0) + 127397));
+};
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
@@ -457,7 +461,7 @@ export default function Admin() {
                     if (user?.number) {
                       parsed = parsePhoneNumberFromString('+' + user.number);
                       if (parsed?.country) {
-                        countryFlag = flag(parsed.country) || '🌍';
+                        countryFlag = getFlagEmoji(parsed.country) || '🌍';
                       }
                     }
                   } catch (e) {}
