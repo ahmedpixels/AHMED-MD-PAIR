@@ -296,32 +296,32 @@ export default function Admin() {
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-8 relative z-10 flex flex-col md:flex-row gap-8 mt-16">
       {/* Sidebar */}
-      <div className="w-full md:w-72 flex-shrink-0 flex flex-col gap-2 glass p-5 rounded-3xl border border-white/10 h-fit sticky top-24">
-        <div className="flex items-center gap-3 mb-6 p-2">
+      <div className="w-full md:w-72 flex-shrink-0 flex flex-row md:flex-col gap-2 glass p-3 md:p-5 rounded-2xl md:rounded-3xl border border-white/10 h-fit sticky top-20 md:top-24 z-40 overflow-x-auto hide-scrollbar">
+        <div className="hidden md:flex items-center gap-3 mb-6 p-2">
           <Shield className="text-purple-500 w-10 h-10" />
           <div>
             <h2 className="text-xl font-bold text-white leading-tight">Admin Panel</h2>
-            <p className="text-xs text-gray-400">AHMED-MD Platform</p>
+            <p className="text-xs text-gray-400">AHMED-MD</p>
           </div>
         </div>
         
-        <button onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 p-3.5 rounded-xl transition-all ${activeTab === 'dashboard' ? 'bg-purple-500/20 text-purple-400 font-bold border border-purple-500/20' : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
-          <Activity className="w-5 h-5" /> Dashboard
+        <button onClick={() => setActiveTab('dashboard')} className={`flex-shrink-0 flex items-center gap-2 md:gap-3 p-3 md:p-3.5 rounded-xl transition-all ${activeTab === 'dashboard' ? 'bg-purple-500/20 text-purple-400 font-bold border border-purple-500/20' : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
+          <Activity className="w-5 h-5" /> <span className="text-sm md:text-base">Dashboard</span>
         </button>
-        <button onClick={() => setActiveTab('users')} className={`flex items-center justify-between p-3.5 rounded-xl transition-all ${activeTab === 'users' ? 'bg-purple-500/20 text-purple-400 font-bold border border-purple-500/20' : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
-          <div className="flex items-center gap-3"><Users className="w-5 h-5" /> Connected Users</div>
-          <span className="text-xs bg-black/50 px-2 py-1 rounded-md">{users.length}</span>
+        <button onClick={() => setActiveTab('users')} className={`flex-shrink-0 flex items-center gap-2 md:gap-3 p-3 md:p-3.5 rounded-xl transition-all ${activeTab === 'users' ? 'bg-purple-500/20 text-purple-400 font-bold border border-purple-500/20' : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
+          <div className="flex items-center gap-2 md:gap-3"><Users className="w-5 h-5" /> <span className="text-sm md:text-base">Users</span></div>
+          <span className="text-xs bg-black/50 px-2 py-1 rounded-md hidden md:inline-block">{users.length}</span>
         </button>
-        <button onClick={() => setActiveTab('settings')} className={`flex items-center gap-3 p-3.5 rounded-xl transition-all ${activeTab === 'settings' ? 'bg-purple-500/20 text-purple-400 font-bold border border-purple-500/20' : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
-          <Settings className="w-5 h-5" /> System Settings
+        <button onClick={() => setActiveTab('settings')} className={`flex-shrink-0 flex items-center gap-2 md:gap-3 p-3 md:p-3.5 rounded-xl transition-all ${activeTab === 'settings' ? 'bg-purple-500/20 text-purple-400 font-bold border border-purple-500/20' : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
+          <Settings className="w-5 h-5" /> <span className="text-sm md:text-base">Settings</span>
         </button>
 
-        <div className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-2">
-          <button onClick={handleRestart} className="flex items-center gap-3 p-3.5 text-yellow-500 hover:bg-yellow-500/10 rounded-xl transition-all font-medium">
-            <RefreshCw className="w-5 h-5" /> Restart Server
+        <div className="md:mt-8 md:pt-6 md:border-t border-white/10 flex flex-row md:flex-col gap-2 flex-shrink-0 ml-auto md:ml-0">
+          <button onClick={handleRestart} title="Restart Server" className="flex items-center gap-2 md:gap-3 p-3 md:p-3.5 text-yellow-500 hover:bg-yellow-500/10 rounded-xl transition-all font-medium">
+            <RefreshCw className="w-5 h-5" /> <span className="hidden md:inline">Restart</span>
           </button>
-          <button onClick={logout} className="flex items-center gap-3 p-3.5 text-red-400 hover:bg-red-500/10 rounded-xl transition-all font-medium">
-            <LogOut className="w-5 h-5" /> Logout Session
+          <button onClick={logout} title="Logout" className="flex items-center gap-2 md:gap-3 p-3 md:p-3.5 text-red-400 hover:bg-red-500/10 rounded-xl transition-all font-medium">
+            <LogOut className="w-5 h-5" /> <span className="hidden md:inline">Logout</span>
           </button>
         </div>
       </div>
@@ -425,7 +425,11 @@ export default function Admin() {
 
         {/* USERS TAB */}
         {activeTab === 'users' && (() => {
-          const filteredUsers = users.filter((u: any) => u.number.includes(searchQuery) || (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())));
+          const filteredUsers = (users || []).filter((u: any) => {
+            const numMatch = u?.number ? String(u.number).includes(searchQuery) : false;
+            const nameMatch = u?.name ? String(u.name).toLowerCase().includes(searchQuery.toLowerCase()) : false;
+            return numMatch || nameMatch;
+          });
           return (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass p-8 rounded-3xl border border-white/10">
             <h2 className="text-2xl font-bold mb-6 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -433,7 +437,7 @@ export default function Admin() {
                 <Users className="text-blue-400 w-6 h-6" />
                 Connected Users
                 <span className="text-sm bg-blue-500/20 border border-blue-500/30 px-3 py-1 rounded-full text-blue-400 font-bold ml-2">
-                  {users.length} Total
+                  {(users || []).length} Total
                 </span>
               </div>
               <div className="relative w-full md:w-64">
@@ -447,16 +451,25 @@ export default function Admin() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredUsers.map((user: any) => {
-                  const parsed = parsePhoneNumberFromString('+' + user.number);
-                  const countryFlag = parsed?.country ? flag(parsed.country) : '🌍';
+                  let countryFlag = '🌍';
+                  let parsed = null;
+                  try {
+                    if (user?.number) {
+                      parsed = parsePhoneNumberFromString('+' + user.number);
+                      if (parsed?.country) {
+                        countryFlag = flag(parsed.country) || '🌍';
+                      }
+                    }
+                  } catch (e) {}
+                  
                   return (
-                  <div key={user.id} className="bg-black/40 border border-white/5 p-4 rounded-2xl flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+                  <div key={user?.id || Math.random()} className="bg-black/40 border border-white/5 p-4 rounded-2xl flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
                     <div className="flex items-center gap-4">
                       <div className="text-3xl" title={parsed?.country || 'Unknown'}>{countryFlag}</div>
                       <div>
-                        <div className="text-lg font-bold text-white tracking-wide">+{user.number}</div>
-                        <div className="text-sm text-gray-400 font-medium">{user.name || 'Unknown User'}</div>
-                        <div className="text-xs text-gray-500 mt-1">{new Date(user.date).toLocaleString()}</div>
+                        <div className="text-lg font-bold text-white tracking-wide">+{user?.number || 'Unknown'}</div>
+                        <div className="text-sm text-gray-400 font-medium">{user?.name || 'Unknown User'}</div>
+                        <div className="text-xs text-gray-500 mt-1">{user?.date ? new Date(user.date).toLocaleString() : 'Unknown Date'}</div>
                       </div>
                     </div>
                     <div className="bg-green-500/10 p-2 rounded-xl border border-green-500/20 text-green-400 opacity-50 group-hover:opacity-100 transition-opacity">
