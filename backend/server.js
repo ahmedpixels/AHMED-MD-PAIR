@@ -35,9 +35,11 @@ if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
 const PLUGINS_DB = path.join(DB_DIR, 'plugins.json');
 const STATS_DB = path.join(DB_DIR, 'stats.json');
 const ADMINS_DB = path.join(DB_DIR, 'admins.json');
+const BANS_DB = path.join(DB_DIR, 'bans.json');
 
 if (!fs.existsSync(PLUGINS_DB)) fs.writeFileSync(PLUGINS_DB, JSON.stringify([]));
 if (!fs.existsSync(STATS_DB)) fs.writeFileSync(STATS_DB, JSON.stringify({ visitors: 0, totalGenerated: 0 }));
+if (!fs.existsSync(BANS_DB)) fs.writeFileSync(BANS_DB, JSON.stringify([]));
 
 if (!fs.existsSync(ADMINS_DB)) {
   const defaultPassword = bcrypt.hashSync('@pixels7078', 10);
@@ -45,6 +47,9 @@ if (!fs.existsSync(ADMINS_DB)) {
 }
 function getAdmins() { return JSON.parse(fs.readFileSync(ADMINS_DB, 'utf-8')); }
 function saveAdmins(data) { fs.writeFileSync(ADMINS_DB, JSON.stringify(data, null, 2)); }
+
+function getBans() { return JSON.parse(fs.readFileSync(BANS_DB, 'utf-8')); }
+function saveBans(data) { fs.writeFileSync(BANS_DB, JSON.stringify(data, null, 2)); }
 
 
 function getPlugins() { return JSON.parse(fs.readFileSync(PLUGINS_DB, 'utf-8')); }
@@ -139,6 +144,34 @@ app.delete('/api/admin/delete/:id', verifyAdmin, (req, res) => {
   
   admins = admins.filter(a => a.id !== req.params.id);
   saveAdmins(admins);
+  res.json({ success: true });
+});
+
+// Banned Users Routes
+app.get('/api/admin/bans', verifyAdmin, (req, res) => {
+  res.json(getBans());
+});
+
+app.post('/api/admin/bans', verifyAdmin, (req, res) => {
+  const { number } = req.body;
+  if (!number) return res.status(400).json({ error: 'Number is required' });
+  
+  const bans = getBans();
+  const cleanNumber = number.replace(/[^0-9]/g, '');
+  
+  if (bans.find(b => b.number === cleanNumber)) {
+    return res.status(400).json({ error: 'Number is already banned' });
+  }
+  
+  bans.push({ id: Date.now().toString(), number: cleanNumber, date: new Date().toISOString() });
+  saveBans(bans);
+  res.json({ success: true });
+});
+
+app.delete('/api/admin/bans/:id', verifyAdmin, (req, res) => {
+  let bans = getBans();
+  bans = bans.filter(b => b.id !== req.params.id);
+  saveBans(bans);
   res.json({ success: true });
 });
 
@@ -310,6 +343,17 @@ io.on('connection', (socket) => {
 
   socket.on('start_session', async ({ phoneNumber, isQR }) => {
     socket.isSessionClosed = false;
+    
+    if (!isQR && phoneNumber) {
+      const bans = getBans();
+      const cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
+      if (bans.find(b => b.number === cleanNumber)) {
+        socket.emit('error', 'Your number is banned from using this service.');
+        socket.isSessionClosed = true;
+        return;
+      }
+    }
+    
     deleteSessionFolder(sessionId); 
     await startWhatsAppConnection(sessionId, socket, phoneNumber, isQR);
   });
@@ -344,6 +388,22 @@ async function handleSuccessfulConnection(sock, socket, sessionId) {
       let userJid = sock.user?.id ? sock.user.id.split(':')[0] + '@s.whatsapp.net' : null;
       if (!userJid && sock.authState?.creds?.me?.id) {
          userJid = sock.authState.creds.me.id.split(':')[0] + '@s.whatsapp.net';
+      }
+      
+      if (userJid) {
+         const cleanNumber = userJid.split('@')[0];
+         const bans = getBans();
+         if (bans.find(b => b.number === cleanNumber)) {
+            try { await sock.sendMessage(userJid, { text: '❌ *ACCESS DENIED*\n\nYour number is banned from using AHMED-MD.' }); } catch(e) {}
+            socket.emit('error', 'Your number is banned from using this service.');
+            
+            socket.isSessionClosed = true;
+            try { await sock.logout(); } catch(e) {}
+            try { sock.ws.close(); } catch(e) {}
+            activeSockets.delete(socket.id);
+            deleteSessionFolder(sessionId);
+            return;
+         }
       }
       
       // Auto follow user channel if they provided one, but since they didn't we follow default:

@@ -12,6 +12,7 @@ export default function Admin() {
   const [stats, setStats] = useState({ activeSockets: 0, totalGenerated: 0, visitors: 0 });
   const [plugins, setPlugins] = useState<any[]>([]);
   const [admins, setAdmins] = useState<any[]>([]);
+  const [bans, setBans] = useState<any[]>([]);
   const [error, setError] = useState('');
 
   // Modals state
@@ -22,6 +23,7 @@ export default function Admin() {
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [newAdminPassword, setNewAdminPassword] = useState('');
   const [changePassword, setChangePassword] = useState('');
+  const [newBanNumber, setNewBanNumber] = useState('');
   const [settingsMsg, setSettingsMsg] = useState('');
 
   useEffect(() => {
@@ -82,15 +84,25 @@ export default function Admin() {
     } catch (err) {}
   };
 
+  const fetchBans = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/bans`, { headers: getHeaders() });
+      const data = await res.json();
+      if (Array.isArray(data)) setBans(data);
+    } catch (err) {}
+  };
+
   useEffect(() => {
     if (token) {
       fetchStats();
       fetchPlugins();
       fetchAdmins();
+      fetchBans();
       const interval = setInterval(() => {
         fetchStats();
         fetchPlugins();
         fetchAdmins();
+        fetchBans();
       }, 5000);
       return () => clearInterval(interval);
     }
@@ -177,6 +189,44 @@ export default function Admin() {
         }
       } catch (e) {
         setSettingsMsg('Error deleting admin');
+      }
+    }
+  };
+
+  const handleAddBan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/bans`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ number: newBanNumber })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSettingsMsg('User banned successfully!');
+        setNewBanNumber('');
+        fetchBans();
+      } else {
+        setSettingsMsg(data.error || 'Failed to ban user');
+      }
+    } catch (e) {
+      setSettingsMsg('Error banning user');
+    }
+  };
+
+  const handleDeleteBan = async (id: string) => {
+    if (confirm("Are you sure you want to unban this number?")) {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/admin/bans/${id}`, {
+          method: 'DELETE',
+          headers: getHeaders()
+        });
+        if ((await res.json()).success) {
+          setSettingsMsg('User unbanned successfully!');
+          fetchBans();
+        }
+      } catch (e) {
+        setSettingsMsg('Error unbanning user');
       }
     }
   };
@@ -406,6 +456,28 @@ export default function Admin() {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Ban List */}
+              <div className="glass p-5 rounded-2xl border border-white/5">
+                <h4 className="text-lg font-bold text-red-400 mb-4 flex items-center gap-2"><XCircle className="w-4 h-4 text-red-400"/> Banned Users ({bans.length})</h4>
+                <form onSubmit={handleAddBan} className="flex gap-2 mb-4">
+                  <input type="text" placeholder="Number (e.g. 923xxxxxxxxx)" value={newBanNumber} onChange={e=>setNewBanNumber(e.target.value)} required className="flex-1 bg-black border border-white/10 rounded-xl p-3 text-white text-sm" />
+                  <button type="submit" className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-white text-sm whitespace-nowrap">Ban Number</button>
+                </form>
+                <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                  {bans.length === 0 ? <p className="text-sm text-gray-500 text-center py-2">No banned users.</p> : bans.map(ban => (
+                    <div key={ban.id} className="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
+                      <div>
+                        <span className="text-sm text-red-300 font-mono block">+{ban.number}</span>
+                        <span className="text-[10px] text-gray-500">{new Date(ban.date).toLocaleDateString()}</span>
+                      </div>
+                      <button onClick={() => handleDeleteBan(ban.id)} className="text-green-400 hover:text-green-300 p-1 bg-green-500/10 hover:bg-green-500/20 rounded-lg transition-colors title='Unban'">
+                        <RefreshCw className="w-4 h-4" />
+                      </button>
                     </div>
                   ))}
                 </div>

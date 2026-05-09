@@ -26,7 +26,14 @@ export default function Generate() {
   }, []);
 
   const handleStart = () => {
-    if (method === 'pairing' && !phoneNumber) return;
+    if (method === 'pairing') {
+      const cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
+      if (!cleanNumber || cleanNumber.length < 10) {
+        setErrorMsg('Please enter a valid phone number with country code (e.g., 923xxxxxxxxx)');
+        setStatus('error');
+        return;
+      }
+    }
     
     setStatus('generating');
     setIsConnecting(false);
@@ -81,6 +88,11 @@ export default function Generate() {
     navigator.clipboard.writeText(sessionString);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyPairingCode = () => {
+    if (!pairingCode) return;
+    navigator.clipboard.writeText(pairingCode);
   };
 
   return (
@@ -180,17 +192,17 @@ export default function Generate() {
                 )}
 
                 {method === 'qr' && qrCode && (
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex flex-col items-center gap-4">
-                    <div className="bg-white p-4 rounded-xl mb-4">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 w-full max-w-2xl mx-auto">
+                    <div className="bg-white p-4 rounded-xl flex-shrink-0">
                       <QRCodeSVG value={qrCode} size={256} />
                     </div>
-                    <div className="glass p-4 rounded-xl text-left border border-white/10 w-full max-w-sm">
-                      <p className="font-bold text-purple-400 mb-2">📸 How to scan:</p>
-                      <ul className="text-sm text-gray-300 space-y-1 list-decimal pl-4">
+                    <div className="glass p-6 rounded-xl text-left border border-white/10 w-full md:w-auto flex-1">
+                      <p className="font-bold text-purple-400 mb-4 text-lg">📸 How to scan:</p>
+                      <ul className="text-gray-300 space-y-3 list-decimal pl-5">
                         <li>Open WhatsApp on your phone</li>
                         <li>Tap Menu (⋮) or Settings</li>
                         <li>Select Linked Devices</li>
-                        <li>Tap "Link a Device" and scan the QR</li>
+                        <li>Tap "Link a Device" and point your phone at this screen to capture the code.</li>
                       </ul>
                     </div>
                   </motion.div>
@@ -199,12 +211,17 @@ export default function Generate() {
                 {method === 'pairing' && pairingCode && (
                   <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-center w-full max-w-sm mx-auto">
                     <p className="text-gray-400 mb-2">Your Pairing Code</p>
-                    <div className="text-5xl md:text-6xl font-black tracking-[0.2em] text-white bg-black/30 py-6 px-8 rounded-2xl border border-white/10 mb-6">
-                      {pairingCode}
+                    <div className="flex items-center justify-center gap-3 bg-black/30 py-5 px-6 rounded-2xl border border-white/10 mb-6 group">
+                      <div className="text-4xl md:text-5xl font-black tracking-[0.2em] text-white">
+                        {pairingCode}
+                      </div>
+                      <button onClick={copyPairingCode} className="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 p-3 rounded-xl transition-all" title="Copy code">
+                        <Copy className="w-6 h-6" />
+                      </button>
                     </div>
-                    <div className="glass p-4 rounded-xl text-left border border-white/10 text-sm">
-                      <p className="font-bold text-purple-400 mb-2">🔗 How to pair:</p>
-                      <ul className="text-gray-300 space-y-1 list-decimal pl-4">
+                    <div className="glass p-5 rounded-xl text-left border border-white/10 text-sm">
+                      <p className="font-bold text-purple-400 mb-3">🔗 How to pair:</p>
+                      <ul className="text-gray-300 space-y-2 list-decimal pl-5">
                         <li>You will receive a notification from WhatsApp</li>
                         <li>Tap the notification</li>
                         <li>Enter the code shown above</li>
