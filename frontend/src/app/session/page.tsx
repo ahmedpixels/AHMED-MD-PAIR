@@ -149,7 +149,7 @@ export default function Generate() {
               disabled={method === 'pairing' && !phoneNumber}
               className="w-full py-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/10"
             >
-              Start Generation
+              Start Session
             </button>
           </div>
         )}
@@ -180,18 +180,37 @@ export default function Generate() {
                 )}
 
                 {method === 'qr' && qrCode && (
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="bg-white p-4 rounded-xl">
-                    <QRCodeSVG value={qrCode} size={256} />
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex flex-col items-center gap-4">
+                    <div className="bg-white p-4 rounded-xl mb-4">
+                      <QRCodeSVG value={qrCode} size={256} />
+                    </div>
+                    <div className="glass p-4 rounded-xl text-left border border-white/10 w-full max-w-sm">
+                      <p className="font-bold text-purple-400 mb-2">📸 How to scan:</p>
+                      <ul className="text-sm text-gray-300 space-y-1 list-decimal pl-4">
+                        <li>Open WhatsApp on your phone</li>
+                        <li>Tap Menu (⋮) or Settings</li>
+                        <li>Select Linked Devices</li>
+                        <li>Tap "Link a Device" and scan the QR</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
 
                 {method === 'pairing' && pairingCode && (
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-center">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-center w-full max-w-sm mx-auto">
                     <p className="text-gray-400 mb-2">Your Pairing Code</p>
-                    <div className="text-5xl md:text-6xl font-black tracking-[0.2em] text-white bg-black/30 py-6 px-8 rounded-2xl border border-white/10">
+                    <div className="text-5xl md:text-6xl font-black tracking-[0.2em] text-white bg-black/30 py-6 px-8 rounded-2xl border border-white/10 mb-6">
                       {pairingCode}
                     </div>
-                    <p className="text-purple-400 mt-4 animate-pulse text-sm">Enter this code in your WhatsApp</p>
+                    <div className="glass p-4 rounded-xl text-left border border-white/10 text-sm">
+                      <p className="font-bold text-purple-400 mb-2">🔗 How to pair:</p>
+                      <ul className="text-gray-300 space-y-1 list-decimal pl-4">
+                        <li>You will receive a notification from WhatsApp</li>
+                        <li>Tap the notification</li>
+                        <li>Enter the code shown above</li>
+                        <li>Wait for it to connect</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </>
@@ -240,31 +259,7 @@ export default function Generate() {
               </div>
             </div>
 
-            {/* Download Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <a
-                href={`${BACKEND_URL}/api/download/nodejs/${sessionString}`}
-                download="index.js"
-                className="w-full py-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-lg shadow-[0_0_15px_rgba(168,85,247,0.5)] transition-all text-center block"
-              >
-                📥 Download (Node.js)
-              </a>
-              <a
-                href={`${BACKEND_URL}/api/download/pm2/${sessionString}`}
-                download="index.js"
-                className="w-full py-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg shadow-[0_0_15px_rgba(99,102,241,0.5)] transition-all text-center block"
-              >
-                📥 Download (PM2)
-              </a>
-            </div>
 
-            <div className="glass rounded-xl p-5 text-left text-sm space-y-2 border border-white/10">
-              <p className="font-bold text-purple-400">📋 VPS Panel Setup Instructions:</p>
-              <p className="text-gray-300">1. Download the file above (Node.js or PM2)</p>
-              <p className="text-gray-300">2. Upload <code className="bg-white/10 px-1 rounded">index.js</code> to your VPS panel</p>
-              <p className="text-gray-300">3. Set <strong>Node.js version</strong> to 18+ in panel settings</p>
-              <p className="text-gray-300">4. Click <strong>Start</strong> — bot will auto-deploy! 🚀</p>
-            </div>
 
             <button
               onClick={() => {

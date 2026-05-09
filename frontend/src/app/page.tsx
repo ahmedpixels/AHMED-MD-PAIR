@@ -107,15 +107,17 @@ export default function Home() {
               Deploy an intelligent WhatsApp bot in seconds. Provide 24/7 support, capture leads, and install custom plugins instantly from our dashboard.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <Link href="/generate">
-                <motion.button 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto px-8 py-4 bg-white text-black rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 group"
-                >
-                  Start Building Free <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </motion.button>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                href="/session"
+                className="group relative px-8 py-4 bg-white text-black rounded-full font-bold text-lg overflow-hidden w-full sm:w-auto text-center"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <span className="relative flex items-center justify-center gap-2 group-hover:text-white transition-colors">
+                  <Terminal className="w-5 h-5" />
+                  Start Session
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </span>
               </Link>
               <Link href="/plugins">
                 <motion.button 

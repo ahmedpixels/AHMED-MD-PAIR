@@ -5,12 +5,12 @@ import { motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
-const navLinks: { name: string; path: string; highlight?: boolean }[] = [
+const navLinks = [
   { name: 'Home', path: '/' },
-  { name: 'Generate', path: '/generate' },
-  { name: 'Deploy', path: '/deploy' },
   { name: 'Plugins', path: '/plugins' },
+  { name: 'Deploy', path: '/deploy' },
   { name: 'About', path: '/about' },
+  { name: 'Session', path: '/session', highlight: true }
 ];
 
 export default function Navbar() {
