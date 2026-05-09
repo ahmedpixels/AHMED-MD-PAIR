@@ -16,9 +16,9 @@ export const metadata: Metadata = {
   authors: [{ name: 'AHMED PIXELS' }],
   creator: 'AHMED PIXELS',
   icons: {
-    icon: 'https://github.com/ahmedpixels.png',
-    shortcut: 'https://github.com/ahmedpixels.png',
-    apple: 'https://github.com/ahmedpixels.png',
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
   },
   openGraph: {
     title: 'AHMED-MD | Premium WhatsApp Bot',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     siteName: 'AHMED-MD Platform',
     images: [
       {
-        url: 'https://github.com/ahmedpixels.png',
+        url: '/logo.png',
         width: 800,
         height: 800,
         alt: 'AHMED-MD Logo',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'AHMED-MD | Premium WhatsApp Bot',
     description: 'Generate your secure AHMED-MD WhatsApp Bot session id.',
-    images: ['https://github.com/ahmedpixels.png'],
+    images: ['/logo.png'],
   },
 };
 
