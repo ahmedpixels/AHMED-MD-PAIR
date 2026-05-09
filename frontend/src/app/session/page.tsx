@@ -156,8 +156,17 @@ export default function Generate() {
                     placeholder="e.g. 923xxxxxxxxx"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all text-lg"
+                    className={`w-full bg-black/50 border rounded-xl px-4 py-4 text-white focus:outline-none transition-all text-lg ${
+                      phoneNumber.length > 0
+                        ? phoneNumber.replace(/[^0-9]/g, '').length >= 10
+                          ? 'border-green-500 focus:ring-1 focus:ring-green-500 shadow-[0_0_10px_rgba(34,197,94,0.2)]'
+                          : 'border-red-500 focus:ring-1 focus:ring-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)]'
+                        : 'border-white/10 focus:border-purple-500 focus:ring-1 focus:ring-purple-500'
+                    }`}
                   />
+                  {phoneNumber.length > 0 && phoneNumber.replace(/[^0-9]/g, '').length < 10 && (
+                    <p className="text-xs text-red-400 mt-1">Please enter a valid full number with country code (e.g. 923xxxxxxxxx).</p>
+                  )}
                   <p className="text-xs text-gray-500">Enter number with country code, without + or spaces.</p>
                 </motion.div>
               )}
@@ -218,12 +227,12 @@ export default function Generate() {
                 {method === 'pairing' && pairingCode && (
                   <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-center w-full max-w-sm mx-auto">
                     <p className="text-gray-400 mb-2">Your Pairing Code</p>
-                    <div className="flex items-center justify-center gap-3 bg-black/30 py-5 px-6 rounded-2xl border border-white/10 mb-6 group">
-                      <div className="text-4xl md:text-5xl font-black tracking-[0.2em] text-white">
+                    <div className="flex items-center justify-center gap-2 bg-black/30 py-4 px-4 rounded-2xl border border-white/10 mb-6 group w-full overflow-hidden">
+                      <div className="text-3xl sm:text-4xl md:text-5xl font-black tracking-widest text-white truncate">
                         {pairingCode}
                       </div>
-                      <button onClick={copyPairingCode} className="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 p-3 rounded-xl transition-all" title="Copy code">
-                        <Copy className="w-6 h-6" />
+                      <button onClick={copyPairingCode} className="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 p-3 rounded-xl transition-all flex-shrink-0" title="Copy code">
+                        <Copy className="w-5 h-5 md:w-6 md:h-6" />
                       </button>
                     </div>
                     <div className="glass p-5 rounded-xl text-left border border-white/10 text-sm">

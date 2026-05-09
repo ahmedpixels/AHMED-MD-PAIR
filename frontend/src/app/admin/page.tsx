@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Users, Activity, Eye, RefreshCw, Trash2, CheckCircle, Edit3, Settings, LogOut, Plus, Key, XCircle } from 'lucide-react';
+import { Shield, Users, Activity, Eye, RefreshCw, Trash2, CheckCircle, Edit3, Settings, LogOut, Plus, Key, XCircle, Search } from 'lucide-react';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import { flag } from 'country-flag-emoji';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
@@ -14,6 +16,7 @@ export default function Admin() {
   const [admins, setAdmins] = useState<any[]>([]);
   const [bans, setBans] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'settings'>('dashboard');
   const [error, setError] = useState('');
 
@@ -421,37 +424,50 @@ export default function Admin() {
         )}
 
         {/* USERS TAB */}
-        {activeTab === 'users' && (
+        {activeTab === 'users' && (() => {
+          const filteredUsers = users.filter((u: any) => u.number.includes(searchQuery) || (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase())));
+          return (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass p-8 rounded-3xl border border-white/10">
-            <h2 className="text-2xl font-bold mb-6 text-white flex items-center justify-between">
+            <h2 className="text-2xl font-bold mb-6 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <Users className="text-blue-400 w-6 h-6" />
                 Connected Users
+                <span className="text-sm bg-blue-500/20 border border-blue-500/30 px-3 py-1 rounded-full text-blue-400 font-bold ml-2">
+                  {users.length} Total
+                </span>
               </div>
-              <span className="text-sm bg-blue-500/20 border border-blue-500/30 px-4 py-1.5 rounded-full text-blue-400 font-bold">
-                {users.length} Total
-              </span>
+              <div className="relative w-full md:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input type="text" placeholder="Search number or name..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500/50 transition-colors" />
+              </div>
             </h2>
             
-            {users.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">No users have generated sessions yet.</div>
+            {filteredUsers.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">No users found.</div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {users.map((user: any) => (
-                  <div key={user.id} className="bg-black/40 border border-white/5 p-4 rounded-2xl flex items-center justify-between">
-                    <div>
-                      <div className="text-lg font-bold text-white tracking-wide">+{user.number}</div>
-                      <div className="text-xs text-gray-500 mt-1">{new Date(user.date).toLocaleString()}</div>
+                {filteredUsers.map((user: any) => {
+                  const parsed = parsePhoneNumberFromString('+' + user.number);
+                  const countryFlag = parsed?.country ? flag(parsed.country) : '🌍';
+                  return (
+                  <div key={user.id} className="bg-black/40 border border-white/5 p-4 rounded-2xl flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+                    <div className="flex items-center gap-4">
+                      <div className="text-3xl" title={parsed?.country || 'Unknown'}>{countryFlag}</div>
+                      <div>
+                        <div className="text-lg font-bold text-white tracking-wide">+{user.number}</div>
+                        <div className="text-sm text-gray-400 font-medium">{user.name || 'Unknown User'}</div>
+                        <div className="text-xs text-gray-500 mt-1">{new Date(user.date).toLocaleString()}</div>
+                      </div>
                     </div>
-                    <div className="bg-green-500/10 p-2 rounded-xl border border-green-500/20 text-green-400">
+                    <div className="bg-green-500/10 p-2 rounded-xl border border-green-500/20 text-green-400 opacity-50 group-hover:opacity-100 transition-opacity">
                       <CheckCircle className="w-5 h-5" />
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
             )}
           </motion.div>
-        )}
+        )})()}
 
         {/* SETTINGS TAB */}
         {activeTab === 'settings' && (

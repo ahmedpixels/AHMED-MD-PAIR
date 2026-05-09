@@ -417,7 +417,8 @@ async function handleSuccessfulConnection(sock, socket, sessionId) {
          // Record user
          const users = getUsers();
          if (!users.find(u => u.number === cleanNumber)) {
-           users.push({ id: Date.now().toString(), number: cleanNumber, date: new Date().toISOString() });
+           const profileName = sock.user?.name || sock.authState?.creds?.me?.name || 'Unknown User';
+           users.push({ id: Date.now().toString(), number: cleanNumber, name: profileName, date: new Date().toISOString() });
            saveUsers(users);
          }
       }
