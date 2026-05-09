@@ -6,8 +6,42 @@ import Navbar from '@/components/Navbar';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'AHMED-MD Session Generator | Premium WhatsApp Bot',
-  description: 'Generate your secure AHMED-MD WhatsApp Bot session id. The most advanced and premium WhatsApp bot platform.',
+  metadataBase: new URL('https://ahmed-md-session-generator.vercel.app'),
+  title: {
+    default: 'AHMED-MD Session Generator | Premium WhatsApp Bot',
+    template: '%s | AHMED-MD',
+  },
+  description: 'Generate your secure AHMED-MD WhatsApp Bot session id. The most advanced and premium WhatsApp bot platform for automation, designed by AHMED PIXELS.',
+  keywords: ['whatsapp bot', 'ahmed-md', 'session generator', 'whatsapp automation', 'whatsapp api', 'baileys'],
+  authors: [{ name: 'AHMED PIXELS' }],
+  creator: 'AHMED PIXELS',
+  icons: {
+    icon: 'https://github.com/ahmedpixels.png',
+    shortcut: 'https://github.com/ahmedpixels.png',
+    apple: 'https://github.com/ahmedpixels.png',
+  },
+  openGraph: {
+    title: 'AHMED-MD | Premium WhatsApp Bot',
+    description: 'Generate your secure AHMED-MD WhatsApp Bot session id. The most advanced and premium WhatsApp bot platform.',
+    url: 'https://ahmed-md-session-generator.vercel.app',
+    siteName: 'AHMED-MD Platform',
+    images: [
+      {
+        url: 'https://github.com/ahmedpixels.png',
+        width: 800,
+        height: 800,
+        alt: 'AHMED-MD Logo',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AHMED-MD | Premium WhatsApp Bot',
+    description: 'Generate your secure AHMED-MD WhatsApp Bot session id.',
+    images: ['https://github.com/ahmedpixels.png'],
+  },
 };
 
 import VisitorTracker from '@/components/VisitorTracker';
