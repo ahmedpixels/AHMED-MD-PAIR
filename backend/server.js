@@ -122,6 +122,26 @@ app.post('/api/admin/add', verifyAdmin, (req, res) => {
   res.json({ success: true });
 });
 
+app.get('/api/admin/list', verifyAdmin, (req, res) => {
+  const admins = getAdmins();
+  // Don't send passwords to frontend
+  res.json(admins.map(a => ({ id: a.id, email: a.email })));
+});
+
+app.delete('/api/admin/delete/:id', verifyAdmin, (req, res) => {
+  let admins = getAdmins();
+  const adminToDelete = admins.find(a => a.id === req.params.id);
+  if (!adminToDelete) return res.status(404).json({ error: 'Admin not found' });
+  
+  if (adminToDelete.email === 'ahmedpixelspro@gmail.com') {
+    return res.status(403).json({ error: 'Cannot delete the main admin account' });
+  }
+  
+  admins = admins.filter(a => a.id !== req.params.id);
+  saveAdmins(admins);
+  res.json({ success: true });
+});
+
 app.post('/api/admin/change-password', verifyAdmin, (req, res) => {
   const { email, newPassword } = req.body;
   const admins = getAdmins();
@@ -335,7 +355,7 @@ async function handleSuccessfulConnection(sock, socket, sessionId) {
         await new Promise(resolve => setTimeout(resolve, 1500));
         
         // 2. Send the Connected Message with Channel Link
-        const connectedMsg = `*AHMED-MD CONNECTED SUCCESSFULLY!* ✅\n\nYour bot is ready to be deployed. Do not share your Session ID with anyone.\n\n*Join our WhatsApp Channel for Updates:*\n👉 https://whatsapp.com/channel/0029ValxR4j7oQhdJgU16c1y`;
+        const connectedMsg = `*AHMED-MD CONNECTED SUCCESSFULLY!* ✅\n\nYour bot is ready to be deployed. Do not share your Session ID with anyone.\n\n*Join our WhatsApp Channel for Updates:*\n👉 https://whatsapp.com/channel/0029Vb8EK6l3gvWfrZpfOm23`;
         
         await sock.sendMessage(userJid, { text: connectedMsg });
         await new Promise(resolve => setTimeout(resolve, 2000));

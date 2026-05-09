@@ -11,6 +11,7 @@ export default function Admin() {
   const [password, setPassword] = useState('');
   const [stats, setStats] = useState({ activeSockets: 0, totalGenerated: 0, visitors: 0 });
   const [plugins, setPlugins] = useState<any[]>([]);
+  const [admins, setAdmins] = useState<any[]>([]);
   const [error, setError] = useState('');
 
   // Modals state
@@ -73,13 +74,23 @@ export default function Admin() {
     } catch (err) {}
   };
 
+  const fetchAdmins = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/list`, { headers: getHeaders() });
+      const data = await res.json();
+      if (Array.isArray(data)) setAdmins(data);
+    } catch (err) {}
+  };
+
   useEffect(() => {
     if (token) {
       fetchStats();
       fetchPlugins();
+      fetchAdmins();
       const interval = setInterval(() => {
         fetchStats();
         fetchPlugins();
+        fetchAdmins();
       }, 5000);
       return () => clearInterval(interval);
     }
@@ -141,10 +152,33 @@ export default function Admin() {
         setSettingsMsg('Admin added successfully!');
         setNewAdminEmail('');
         setNewAdminPassword('');
+        fetchAdmins();
       } else {
-        setSettingsMsg(data.error);
+        setSettingsMsg(data.error || 'Failed to add admin');
       }
-    } catch (e) {}
+    } catch (e) {
+      setSettingsMsg('Error adding admin');
+    }
+  };
+
+  const handleDeleteAdmin = async (id: string) => {
+    if (confirm("Are you sure you want to delete this admin?")) {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/admin/delete/${id}`, {
+          method: 'DELETE',
+          headers: getHeaders()
+        });
+        const data = await res.json();
+        if (data.success) {
+          setSettingsMsg('Admin deleted successfully!');
+          fetchAdmins();
+        } else {
+          setSettingsMsg(data.error || 'Failed to delete admin');
+        }
+      } catch (e) {
+        setSettingsMsg('Error deleting admin');
+      }
+    }
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -356,6 +390,25 @@ export default function Admin() {
                   <input type="password" placeholder="Temporary Password" value={newAdminPassword} onChange={e=>setNewAdminPassword(e.target.value)} required className="w-full bg-black border border-white/10 rounded-xl p-3 text-white" />
                   <button type="submit" className="self-end px-5 py-2 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-white text-sm">Create Admin</button>
                 </form>
+              </div>
+
+              {/* Admin List */}
+              <div className="glass p-5 rounded-2xl border border-white/5">
+                <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-blue-400"/> Manage Admins ({admins.length})</h4>
+                <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                  {admins.map(admin => (
+                    <div key={admin.id} className="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
+                      <span className="text-sm text-gray-300 font-mono">{admin.email}</span>
+                      {admin.email === 'ahmedpixelspro@gmail.com' ? (
+                        <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded-full font-bold">Master</span>
+                      ) : (
+                        <button onClick={() => handleDeleteAdmin(admin.id)} className="text-red-400 hover:text-red-300 p-1 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </motion.div>
